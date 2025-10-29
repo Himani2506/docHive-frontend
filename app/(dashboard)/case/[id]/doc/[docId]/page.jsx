@@ -1,324 +1,152 @@
 "use client"
 
-import React, { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Eye, Save, Send, Plus, Trash2 } from 'lucide-react'
+import React, { useState, useEffect } from "react"
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
 
-function page() {
-  const [invoiceData, setInvoiceData] = useState({
-    firstName: 'John',
-    lastName: 'John',
-    address: '123 Maple Street, Springfield, USA',
-    invoiceNumber: 'INV-0231',
-    currency: 'US Dollar',
-    issuedDate: '',
-    dueDate: '',
-    clientName: 'Acme Corp',
-    clientEmail: 'hi@acmecorp.com',
-    clientAddress: '123 Maple Street, Springfield'
-  })
+function Page() {
+  const [documentData, setDocumentData] = useState(null)
 
-  const [items, setItems] = useState([
-    { id: 1, name: 'Website Design', qty: 1, cost: 49.00 },
-    { id: 2, name: 'Logo', qty: 1, cost: 499.00 },
-    { id: 3, name: '3D Animation', qty: 1, cost: 1232.00 },
-    { id: 4, name: 'Framer Sub.', qty: 1, cost: 48.00 }
-  ])
+  useEffect(() => {
+    // Fetch or load your stored JSON (example: from localStorage or API)
+    const storedContext = localStorage.getItem("documentContext")
+    if (storedContext) {
+      setDocumentData(JSON.parse(storedContext))
+    }
+  }, [])
 
-  const subtotal = items.reduce((sum, item) => sum + (item.qty * item.cost), 0)
-  const tax = subtotal * 0.1
-  const total = subtotal - tax
-
-  const addItem = () => {
-    setItems([...items, { id: Date.now(), name: '', qty: 1, cost: 0 }])
+  if (!documentData) {
+    return (
+      <div className="flex h-[100svh] items-center justify-center text-gray-500">
+        No document context found. Please upload and process a file first.
+      </div>
+    )
   }
 
-  const removeItem = (id) => {
-    setItems(items.filter(item => item.id !== id))
-  }
-
-  const updateItem = (id, field, value) => {
-    setItems(items.map(item => 
-      item.id === id ? { ...item, [field]: value } : item
-    ))
-  }
+  const { document_analysis, key_data_points, key_clauses, key_deadlines, legal_terminology } = documentData
 
   return (
-    <div className="h-full overflow-y-auto p-5">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">New Invoice</h1>
-          <p className="text-gray-600">Generate and send new invoice.</p>
-        </div>
+    <div className="h-[100svh] overflow-y-auto bg-gray-50 p-6">
+      <div className="max-w-6xl mx-auto space-y-8">
+        {/* Document Analysis */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl font-semibold">📄 Document Analysis</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <p><strong>Predicted Type:</strong> {document_analysis?.predicted_document_type || "N/A"}</p>
+            <p><strong>Summary:</strong> {document_analysis?.abstractive_summary || "No summary available."}</p>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left Panel - Form */}
-          <div className="space-y-6">
-            {/* Invoice Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-bold">A</span>
-                  </div>
-                  Acme Corp
-                  <span className="text-sm text-gray-500 ml-auto">hi@acmecorp.com</span>
-                </CardTitle>
-                <p className="text-sm text-gray-600">Enter invoice details.</p>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="firstName">First Name</Label>
-                    <Input 
-                      id="firstName"
-                      value={invoiceData.firstName}
-                      onChange={(e) => setInvoiceData({...invoiceData, firstName: e.target.value})}
-                      placeholder="Ex. John"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="lastName">Last Name</Label>
-                    <Input 
-                      id="lastName"
-                      value={invoiceData.lastName}
-                      onChange={(e) => setInvoiceData({...invoiceData, lastName: e.target.value})}
-                      placeholder="Ex. John"
-                    />
+            <div>
+              <strong>Keywords:</strong>
+              <div className="flex flex-wrap gap-2 mt-1">
+                {(document_analysis?.keywords || []).map((kw, idx) => (
+                  <Badge key={idx} variant="secondary">{kw}</Badge>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <strong>Themes:</strong>
+              <div className="flex flex-wrap gap-2 mt-1">
+                {(document_analysis?.themes || []).map((theme, idx) => (
+                  <Badge key={idx} variant="outline">{theme}</Badge>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Key Data Points */}
+        {key_data_points?.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl font-semibold">📌 Key Data Points</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {key_data_points.map((data, idx) => (
+                <div key={idx} className="border rounded-lg p-4 bg-white shadow-sm">
+                  <p><strong>Label:</strong> {data.label || "N/A"}</p>
+                  <p><strong>Entity Type:</strong> {data.entity_type || "N/A"}</p>
+                  <div className="mt-2">
+                    <strong>Attributes:</strong>
+                    <ul className="list-disc ml-6">
+                      {(data.attributes || []).map((attr, i) => (
+                        <li key={i}>{attr.key}: {attr.value}</li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
-                
-                <div>
-                  <Label htmlFor="address">Address</Label>
-                  <Input 
-                    id="address"
-                    value={invoiceData.address}
-                    onChange={(e) => setInvoiceData({...invoiceData, address: e.target.value})}
-                    placeholder="Ex. 123 Maple Street, Springfield, USA"
-                  />
-                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="invoiceNumber">Invoice Number</Label>
-                    <Input 
-                      id="invoiceNumber"
-                      value={invoiceData.invoiceNumber}
-                      onChange={(e) => setInvoiceData({...invoiceData, invoiceNumber: e.target.value})}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="currency">Currency</Label>
-                    <select className="w-full h-9 px-3 rounded-md border border-input bg-transparent text-sm">
-                      <option>🇺🇸 US Dollar</option>
-                    </select>
-                  </div>
-                </div>
+        {/* Key Clauses */}
+        {key_clauses?.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl font-semibold">📑 Key Clauses</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {key_clauses.map((clause, idx) => (
+                <div key={idx} className="border rounded-lg p-4 bg-white shadow-sm">
+                  <p><strong>Clause Type:</strong> {clause.clause_type || "N/A"}</p>
+                  <p><strong>Summary:</strong> {clause.summary || "N/A"}</p>
+                  <p><strong>Layman Implication:</strong> {clause.layman_implication || "N/A"}</p>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="issuedDate">Issued Date</Label>
-                    <Input 
-                      id="issuedDate"
-                      type="date"
-                      value={invoiceData.issuedDate}
-                      onChange={(e) => setInvoiceData({...invoiceData, issuedDate: e.target.value})}
-                      placeholder="DD/MM/YYYY"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="dueDate">Due Date</Label>
-                    <Input 
-                      id="dueDate"
-                      type="date"
-                      value={invoiceData.dueDate}
-                      onChange={(e) => setInvoiceData({...invoiceData, dueDate: e.target.value})}
-                      placeholder="DD/MM/YYYY"
-                    />
+                  <div className="mt-2">
+                    <strong>Analysis:</strong>
+                    <ul className="list-disc ml-6">
+                      {(clause.analysis || []).map((a, i) => (
+                        <li key={i}>{a.type}: {a.value} — {a.details}</li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              ))}
+            </CardContent>
+          </Card>
+        )}
 
-            {/* Product Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Product Details</CardTitle>
-                <p className="text-sm text-gray-600">Enter product details.</p>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {/* Table Header */}
-                  <div className="grid grid-cols-12 gap-2 text-sm font-medium text-gray-600 pb-2 border-b">
-                    <div className="col-span-1"></div>
-                    <div className="col-span-5">Item</div>
-                    <div className="col-span-2">QTY</div>
-                    <div className="col-span-2">Cost</div>
-                    <div className="col-span-2">Total</div>
-                  </div>
-
-                  {/* Items */}
-                  {items.map((item) => (
-                    <div key={item.id} className="grid grid-cols-12 gap-2 items-center">
-                      <div className="col-span-1">
-                        <div className="w-6 h-6 border-2 border-dashed border-gray-300 rounded"></div>
-                      </div>
-                      <div className="col-span-5">
-                        <Input 
-                          value={item.name}
-                          onChange={(e) => updateItem(item.id, 'name', e.target.value)}
-                          placeholder="Item name"
-                          className="text-sm"
-                        />
-                      </div>
-                      <div className="col-span-2">
-                        <Input 
-                          type="number"
-                          value={item.qty}
-                          onChange={(e) => updateItem(item.id, 'qty', parseInt(e.target.value) || 0)}
-                          className="text-sm"
-                        />
-                      </div>
-                      <div className="col-span-2">
-                        <Input 
-                          type="number"
-                          value={item.cost}
-                          onChange={(e) => updateItem(item.id, 'cost', parseFloat(e.target.value) || 0)}
-                          className="text-sm"
-                        />
-                      </div>
-                      <div className="col-span-1 text-sm font-medium">
-                        ${(item.qty * item.cost).toFixed(2)}
-                      </div>
-                      <div className="col-span-1">
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          onClick={() => removeItem(item.id)}
-                          className="h-6 w-6"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-
-                  <Button 
-                    variant="outline" 
-                    onClick={addItem}
-                    className="w-full gap-2 mt-4"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add Item
-                  </Button>
+        {/* Key Deadlines */}
+        {key_deadlines?.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl font-semibold">🗓️ Key Deadlines</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {key_deadlines.map((deadline, idx) => (
+                <div key={idx} className="border rounded-lg p-4 bg-white shadow-sm">
+                  <p><strong>Date:</strong> {deadline.date || "N/A"}</p>
+                  <p><strong>Event:</strong> {deadline.event || "N/A"}</p>
+                  <p><strong>Explanation:</strong> {deadline.explanation || "N/A"}</p>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
 
-          {/* Right Panel - Preview */}
-          <div>
-            <Card className="sticky top-6">
-              <CardContent className="p-8">
-                {/* Invoice Header */}
-                <div className="flex justify-between items-start mb-8">
-                  <div>
-                    <h2 className="text-3xl font-bold mb-2">Invoice</h2>
-                    <div className="space-y-1 text-sm">
-                      <p><span className="font-medium">Invoice Number:</span> {invoiceData.invoiceNumber}</p>
-                    </div>
-                  </div>
-                  <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
-                    <span className="text-gray-600 font-bold">📄</span>
-                  </div>
+        {/* Legal Terminology */}
+        {legal_terminology?.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl font-semibold">⚖️ Legal Terminology</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {legal_terminology.map((term, idx) => (
+                <div key={idx} className="border rounded-lg p-4 bg-white shadow-sm">
+                  <p><strong>Term:</strong> {term.term || "N/A"}</p>
+                  <p><strong>Explanation:</strong> {term.explanation || "N/A"}</p>
                 </div>
-
-                {/* Billing Information */}
-                <div className="grid grid-cols-2 gap-8 mb-8">
-                  <div>
-                    <h3 className="font-semibold mb-2">Billed by:</h3>
-                    <div className="text-sm space-y-1">
-                      <p className="font-medium">John Jacobs</p>
-                      <p className="text-gray-600">hjacobs@gmail.com</p>
-                      <p className="text-gray-600">123 Maple Street, Springfield</p>
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold mb-2">Billed to:</h3>
-                    <div className="text-sm space-y-1">
-                      <p className="font-medium">Acme Corp</p>
-                      <p className="text-gray-600">hi@acmecorp.com</p>
-                      <p className="text-gray-600">123 Maple Street, Springfield</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Dates */}
-                <div className="grid grid-cols-2 gap-8 mb-8">
-                  <div>
-                    <p className="text-sm font-medium">Date Issued:</p>
-                    <p className="text-sm text-gray-600">Jul 28, 2025</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">Due Date:</p>
-                    <p className="text-sm text-gray-600">Jul 31, 2025</p>
-                  </div>
-                </div>
-
-                {/* Items Table */}
-                <div className="mb-8">
-                  <div className="grid grid-cols-12 gap-2 text-sm font-medium border-b pb-2 mb-4">
-                    <div className="col-span-6">Item</div>
-                    <div className="col-span-2 text-center">QTY</div>
-                    <div className="col-span-2 text-right">Cost</div>
-                    <div className="col-span-2 text-right">Total</div>
-                  </div>
-                  
-                  {items.map((item) => (
-                    <div key={item.id} className="grid grid-cols-12 gap-2 text-sm py-2">
-                      <div className="col-span-6">{item.name}</div>
-                      <div className="col-span-2 text-center">{item.qty}</div>
-                      <div className="col-span-2 text-right">${item.cost.toFixed(2)}</div>
-                      <div className="col-span-2 text-right">${(item.qty * item.cost).toFixed(2)}</div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Totals */}
-                <div className="border-t pt-4 space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Subtotal</span>
-                    <span>${subtotal.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm text-gray-600">
-                    <span>Tax</span>
-                    <span>10%(-${tax.toFixed(2)})</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Discount</span>
-                    <span>$0.00</span>
-                  </div>
-                  <div className="flex justify-between font-bold text-lg border-t pt-2">
-                    <span>TOTAL</span>
-                    <span>${total.toFixed(2)}</span>
-                  </div>
-                </div>
-
-                {/* Footer Message */}
-                <div className="mt-8 text-xs text-gray-500">
-                  <p>Thank you for your purchase! We appreciate your business and look forward to serving you again.</p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   )
 }
 
-export default page
+export default Page

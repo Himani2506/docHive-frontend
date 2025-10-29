@@ -5,28 +5,34 @@ import fs from 'fs';
 import path from 'path';
 import { writeFile } from 'fs/promises';
 
-const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY || '');
-const fileManager = new GoogleAIFileManager(process.env.NEXT_PUBLIC_GEMINI_API_KEY || '');
+const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY || 'AIzaSyDV8HVnb4-V5zD0hRwsewuh6yQmhuElBJo');
+const fileManager = new GoogleAIFileManager(process.env.NEXT_PUBLIC_GEMINI_API_KEY || 'AIzaSyDV8HVnb4-V5zD0hRwsewuh6yQmhuElBJo');
 
 export async function POST(request) {
   try {
     const formData = await request.formData();
     const file = formData.get('file');
+    console.log(file);
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
-    if (!process.env.NEXT_PUBLIC_GEMINI_API_KEY) {
-      return NextResponse.json(
-        { error: 'Gemini API key not configured' },
-        { status: 500 }
-      );
-    }
+    // if (!process.env.NEXT_PUBLIC_GEMINI_API_KEY) {
+    //   return NextResponse.json(
+    //     { error: 'Gemini API key not configured' },
+    //     { status: 500 }
+    //   );
+    // }
+    console.log(1);
 
     // Create a temporary file to upload to Gemini
     const bytes = await file.arrayBuffer();
+     console.log(2);
     const buffer = Buffer.from(bytes);
+     console.log(3);
+    console.log(`Received file: ${file.name}, size: ${buffer.length} bytes`);
+    
     
     // Create a temporary file path
     const tempDir = '/tmp';
@@ -45,7 +51,7 @@ export async function POST(request) {
       console.log(`Uploaded file ${uploadResponse.file.displayName} as: ${uploadResponse.file.name}`);
 
       // Get the generative model
-      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
       // Analyze the document using the uploaded file
       const analysisPrompt = `

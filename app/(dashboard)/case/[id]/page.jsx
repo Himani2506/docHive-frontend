@@ -15,7 +15,7 @@ async function page({ params }) {
   ];
 
   return (
-    <div className="flex-1 h-full p-5 z-50 flex flex-col gap-2 overflow-y-auto">
+    <div className="min-h-screen p-5 z-50 flex flex-col gap-2 overflow-y-auto">
       {/* <div className='flex-1 rounded-lg border border-gray-200 w-full h-full'>
         <DocMap />
       </div> */}
