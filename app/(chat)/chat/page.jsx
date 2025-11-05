@@ -58,7 +58,7 @@ function ChatPage() {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const response = await fetch("http://127.0.0.1:8000/upload", {
+      const response = await fetch("http://4.240.97.29:8000/upload", {
         method: "POST",
         body: formData,
       });
@@ -163,7 +163,7 @@ function ChatPage() {
 
     try {
       const savedContext = localStorage.getItem("documentContext");
-      const response = await fetch("http://127.0.0.1:8000/chat", {
+      const response = await fetch("http://4.240.97.29:8000/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
